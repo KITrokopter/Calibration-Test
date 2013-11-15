@@ -1,4 +1,4 @@
-CFLAGS = -W -Wall -Werror -std=c99 -fPIC -g `pkg-config --cflags opencv`
+CFLAGS = -W -Wall -Werror -fPIC -g `pkg-config --cflags opencv`
 TARGET = calib
 LIBS = `pkg-config --libs opencv`
 INCLUDE = -I/usr/local/include/libfreenect
