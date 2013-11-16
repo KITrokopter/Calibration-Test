@@ -4,9 +4,32 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <unistd.h>
 
 #include "libfreenect.hpp"
 #include "CvKinect.hpp"
+
+void findObject(cv::Mat rgb) {
+	cv::Mat hsv;
+	
+	cv::cvtColor(rgb, hsv, CV_RGB2HSV);
+	unsigned char* data = hsv.data;
+	size_t total = hsv.total();
+	
+	// Mask
+	for (unsigned int i = 0; i < total; i += 3) {
+		if (data[i] < 20 || data[i] > 235) {
+			data[i + 1] = 0;
+			data[i + 2] = 255;
+		}
+	}
+	
+	// Show result
+	cv::cvtColor(hsv, rgb, CV_HSV2RGB);
+	cv::imshow("rgb", rgb);
+
+	sleep(5);
+}
 
 int main(void) {
 	printf("Hello World!\n");
@@ -50,6 +73,10 @@ int main(void) {
 	for (std::list<cv::Mat>::iterator iter = images.begin(); iter != images.end(); ++iter) {
 		cv::imshow("rgb", *iter);
 	
+		//////////////////////////
+		findObject(*iter);
+		//////////////////////////
+		
 		cv::Mat greyMat(cv::Size(640, 480), CV_8UC1, cv::Scalar(0));
 	
 		cv::cvtColor(*iter, greyMat, CV_RGB2GRAY);
