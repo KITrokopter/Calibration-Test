@@ -1,5 +1,5 @@
-#ifndef MY_DEVICE_HPP
-#define MY_DEVICE_HPP
+#ifndef CV_KINECT_HPP
+#define CV_KINECT_HPP
 
 #include <vector>
 #include <cv.h>
@@ -7,11 +7,11 @@
 #include "libfreenect.hpp"
 #include "Mutex.hpp"
 
-class MyDevice : public Freenect::FreenectDevice {
+class CvKinect : public Freenect::FreenectDevice {
 
 
 	public:
-		MyDevice(freenect_context *_ctx, int _index);
+		CvKinect(freenect_context *_ctx, int _index);
 		
 		// Do not call directly even in child
 		void VideoCallback(void* _rgb, uint32_t timestamp);
@@ -36,4 +36,4 @@ class MyDevice : public Freenect::FreenectDevice {
 		bool m_new_depth_frame;
 };
 
-#endif // MY_DEVICE_HPP
+#endif // CV_KINECT_HPP

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "libfreenect.hpp"
-#include "MyDevice.hpp"
+#include "CvKinect.hpp"
 
 int main(void) {
 	printf("Hello World!\n");
@@ -18,7 +18,7 @@ int main(void) {
 	std::list<cv::Mat> images;
 	
 	Freenect::Freenect freenect;
-	MyDevice& device = freenect.createDevice<MyDevice>(0);
+	CvKinect& device = freenect.createDevice<CvKinect>(0);
 	
 	device.startVideo();
 	
