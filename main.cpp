@@ -4,31 +4,77 @@
 #include <list>
 #include <vector>
 #include <iostream>
-#include <unistd.h>
 
 #include "libfreenect.hpp"
 #include "CvKinect.hpp"
+#include "Area.hpp"
+
+
 
 void findObject(cv::Mat rgb) {
 	cv::Mat hsv;
+	cv::Mat result;
+	cv::Mat greyMap(cv::Size(rgb.cols, rgb.rows), CV_8UC1);
 	
-	cv::cvtColor(rgb, hsv, CV_RGB2HSV);
+	cv::cvtColor(rgb, hsv, CV_BGR2HSV);
 	unsigned char* data = hsv.data;
-	size_t total = hsv.total();
+	size_t total = hsv.total() * 3;
 	
-	// Mask
+	unsigned char hueVariance = 10;
+	unsigned char minSaturation = 150;
+	unsigned char minValue = 50;
+	unsigned char maxValue = 200;
+	
+	// Mask.
 	for (unsigned int i = 0; i < total; i += 3) {
-		if (data[i] < 20 || data[i] > 235) {
+		if ((data[i] < hueVariance || data[i] > 255 - hueVariance) && data[i + 1] > minSaturation && data[i + 2] > minValue && data[i + 2] < maxValue) {
 			data[i + 1] = 0;
 			data[i + 2] = 255;
+		} else {
+			data[i + 2] = 0;
 		}
 	}
 	
-	// Show result
-	cv::cvtColor(hsv, rgb, CV_HSV2RGB);
+	// Show result.
+	cv::cvtColor(hsv, result, CV_HSV2BGR);
+	cv::imshow("depth", result);
 	cv::imshow("rgb", rgb);
 
-	sleep(5);
+	cv::waitKey();
+	
+	int rowSize = result.total() / result.rows;
+	int colSize = result.total() / result.cols;
+	
+	// Convert to grey image.
+	for (unsigned int i = 0; i < total; i++) {
+		greyMap.data[i] = hsv.data[(i * 3) + 2];
+	}
+	
+	// Eventually remove small lines or points here by removing pixels with little neighbours.
+	
+	std::list<Area> areas;
+	
+	// Search for areas.
+	for (unsigned int i = 0; i < greyMap.total(); i++) {
+		if (greyMap.data[i] == 255) {
+			Area area(i, greyMap.data, rowSize, colSize);
+			
+			if (area.getWidth() != 0 && area.getHeight() != 0) {
+				areas.push_back(area);
+			}
+		}
+	}
+	
+	// Draw areas to result.
+	for (std::list<Area>::iterator iter = areas.begin(); iter != areas.end(); iter++) {
+		iter->draw(result, 0x22DD22);
+	}
+	
+	// Show result.
+	cv::imshow("depth", result);
+	cv::imshow("rgb", rgb);
+
+	cv::waitKey();
 }
 
 int main(void) {
@@ -70,7 +116,7 @@ int main(void) {
 	
 	std::cout << "Images: " << images.size() << std::endl;
 	
-	for (std::list<cv::Mat>::iterator iter = images.begin(); iter != images.end(); ++iter) {
+	for (std::list<cv::Mat>::iterator iter = images.begin(); iter != images.end(); iter++) {
 		cv::imshow("rgb", *iter);
 	
 		//////////////////////////
@@ -79,7 +125,7 @@ int main(void) {
 		
 		cv::Mat greyMat(cv::Size(640, 480), CV_8UC1, cv::Scalar(0));
 	
-		cv::cvtColor(*iter, greyMat, CV_RGB2GRAY);
+		cv::cvtColor(*iter, greyMat, CV_BGR2GRAY);
 		std::vector<cv::Point2f> corners;
 		
 		bool found = cv::findChessboardCorners(greyMat, cv::Size(7, 7), corners);
