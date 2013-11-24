@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <sys/time.h>
 
 #include "libfreenect.hpp"
 #include "CvKinect.hpp"
@@ -12,6 +13,12 @@
 
 
 void findObject(cv::Mat rgb) {
+	timespec ts, te;
+
+	if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+		std::cout << "Time error" << std::endl;
+	}
+
 	cv::Mat hsv;
 	cv::Mat result;
 	cv::Mat greyMap(cv::Size(rgb.cols, rgb.rows), CV_8UC1);
@@ -34,19 +41,18 @@ void findObject(cv::Mat rgb) {
 			data[i + 2] = 0;
 		}
 	}
-	
+
 	// Show result.
 	cv::cvtColor(hsv, result, CV_HSV2BGR);
 	cv::imshow("depth", result);
 	cv::imshow("rgb", rgb);
 
-	cv::waitKey();
-	
+	//cv::waitKey();
 	int rowSize = result.total() / result.rows;
 	int colSize = result.total() / result.cols;
 	
 	// Convert to grey image.
-	for (unsigned int i = 0; i < total; i++) {
+	for (unsigned int i = 0; i < total / 3; i++) {
 		greyMap.data[i] = hsv.data[(i * 3) + 2];
 	}
 	
@@ -69,10 +75,17 @@ void findObject(cv::Mat rgb) {
 	for (std::list<Area>::iterator iter = areas.begin(); iter != areas.end(); iter++) {
 		iter->draw(result, 0x22DD22);
 	}
-	
+
 	// Show result.
-	cv::imshow("depth", result);
-	cv::imshow("rgb", rgb);
+	//cv::imshow("depth", result);
+	//cv::imshow("rgb", rgb);
+
+	if (clock_gettime(CLOCK_REALTIME, &te) == -1) {
+		std::cout << "Time error" << std::endl;
+	}
+
+	long int time = (te.tv_sec - ts.tv_sec) * 1000000000L + te.tv_nsec - ts.tv_nsec;
+	std::cout << "Time: " << time << std::endl;
 
 	cv::waitKey();
 }
